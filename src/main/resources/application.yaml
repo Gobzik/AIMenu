@@ -1,3 +1,18 @@
 spring:
   application:
-    name: AIMenu
+    name: aimenu
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/aimenu}
+    username: ${DATABASE_USERNAME:aimenu}
+    password: ${DATABASE_PASSWORD:aimenu}
+  flyway:
+    enabled: true
+server:
+  port: 8080
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+recommendations:
+  url: ${RECOMMENDATIONS_URL:http://localhost:8000}

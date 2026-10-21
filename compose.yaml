@@ -1,1 +1,57 @@
-services: { }
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: aimenu
+      POSTGRES_USER: aimenu
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aimenu-local}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U aimenu -d aimenu']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  recommendations-db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: recommendations
+      POSTGRES_USER: recommendations
+      POSTGRES_PASSWORD: ${RECOMMENDATIONS_DB_PASSWORD:-recommendations-local}
+    volumes:
+      - recommendations-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U recommendations -d recommendations']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  recommendations:
+    build: ./recommendations
+    environment:
+      DATABASE_URL: postgresql://recommendations:${RECOMMENDATIONS_DB_PASSWORD:-recommendations-local}@recommendations-db:5432/recommendations
+    depends_on:
+      recommendations-db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  backend:
+    build: .
+    ports:
+      - '8080:8080'
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/aimenu
+      DATABASE_USERNAME: aimenu
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-aimenu-local}
+      RECOMMENDATIONS_URL: http://recommendations:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      recommendations:
+        condition: service_healthy
+volumes:
+  postgres-data:
+  recommendations-data:
+
