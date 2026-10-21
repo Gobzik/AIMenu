@@ -49,6 +49,7 @@ class AiMenuApplicationTests {
             Batch(10, 1, BigDecimal("1"), LocalDate.now()),
             Batch(11, 1, BigDecimal("3"), LocalDate.now().plusDays(3))
         ))
+        `when`(store.cooking(1, "fefo-request")).thenReturn(null)
         service.cook(1, 1, "fefo-request")
         val order = inOrder(store)
         order.verify(store).consume(10, BigDecimal("1"))
@@ -56,3 +57,5 @@ class AiMenuApplicationTests {
         order.verify(store).recordCooking(1, "fefo-request", 1)
     }
 }
+
+
