@@ -1,5 +1,7 @@
 package org.seed.aimenu.infrastructure.service
+import java.util.UUID
 import org.seed.aimenu.application.port.output.RecommendationPort
+import org.seed.aimenu.domain.exception.BusinessException
 import org.seed.aimenu.domain.model.*
 import org.springframework.stereotype.Component
 import org.springframework.beans.factory.annotation.Value
@@ -12,8 +14,8 @@ class HttpRecommendations(@Value("\${recommendations.url}") url:String):Recommen
     private val client=RestClient.builder().baseUrl(url).requestFactory(JdkClientHttpRequestFactory(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build()).apply{
         setReadTimeout(Duration.ofSeconds(10))
     }).build()
-    override fun recommend(user:Long,profile:Profile,pantry:List<Batch>,recipes:List<Recipe>):Any {
-        val body=mapOf("user_id" to user.toString(),"allergies" to profile.allergyProductIds.map{
+    override fun recommend(user:UUID,profile:Profile,pantry:List<Batch>,recipes:List<Recipe>):Any {
+        val body=mapOf("user_id" to user.toString(),"limit" to 100,"allergies" to profile.allergyProductIds.map{
             it.toString()
         },"favorite_product_ids" to profile.favoriteProductIds.map{
             it.toString()
@@ -29,7 +31,7 @@ class HttpRecommendations(@Value("\${recommendations.url}") url:String):Recommen
         return try {
             client.post().uri("/recommendations").body(body).retrieve().body(Map::class.java) ?: throw IllegalStateException("Empty response")
         } catch(e:Exception){
-            throw BusinessException(503,"Recommendations temporarily unavailable")
+            throw BusinessException(503, "Рекомендации временно недоступны")
         }
     }
 }

@@ -104,7 +104,7 @@ class RecommendationService:
             urgency = len(set(needed) & urgent) / len(needed)
             score = 100 * coverage + 5 * urgency + 3 * similarities.get(recipe.id, 0) + (2 if recipe.id in request.favorite_recipe_ids else 0)
             results.append(Recommendation(recipe_id=recipe.id, score=round(score, 4), missing_ingredients=missing,
-                         reason='All ingredients available' if not missing else f'Buy {len(missing)} ingredient(s); {coverage:.0%} available'))
+                         reason='Все продукты уже есть' if not missing else f'Нужно докупить: {len(missing)}; есть {coverage:.0%} продуктов'))
         results.sort(key=lambda r: (len(r.missing_ingredients), -r.score, r.recipe_id))
         return RecommendationResponse(recommendations=results[:request.limit])
 

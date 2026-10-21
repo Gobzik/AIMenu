@@ -46,12 +46,19 @@ services:
       DATABASE_USERNAME: aimenu
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-aimenu-local}
       RECOMMENDATIONS_URL: http://recommendations:8000
+      JWT_SECRET: ${JWT_SECRET:-aimenu-local-jwt-secret-change-before-deployment-2026}
     depends_on:
       postgres:
         condition: service_healthy
       recommendations:
         condition: service_healthy
+  frontend:
+    build: ./frontend
+    ports:
+      - '3000:80'
+    depends_on:
+      backend:
+        condition: service_healthy
 volumes:
   postgres-data:
   recommendations-data:
-
